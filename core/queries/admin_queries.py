@@ -101,7 +101,40 @@ def average_score(start_date: Optional[str] = None, end_date: Optional[str] = No
     return run_query(sql, params)
 
 
-# ------------------ MISSING FACULTY/ADMIN SUMMARIES ------------------
+# **--- 🎯 Missing KPI Functions Added Below ---**
+
+def average_ces(start_date: Optional[str] = None, end_date: Optional[str] = None) -> pd.DataFrame:
+    """
+    Calculate the average Customer Effort Score (CES) across all attempts.
+    """
+    sql = """
+        SELECT AVG(ces_value)::numeric(10,2) AS avg_ces
+        FROM attempts
+        WHERE timestamp >= :start AND timestamp <= :end AND ces_value IS NOT NULL;
+    """
+    params = {
+        "start": f"{start_date} 00:00:00" if start_date else "1900-01-01 00:00:00",
+        "end": f"{end_date} 23:59:59" if end_date else "2999-12-31 23:59:59"
+    }
+    return run_query(sql, params)
+
+
+def average_time_on_task(start_date: Optional[str] = None, end_date: Optional[str] = None) -> pd.DataFrame:
+    """
+    Calculate the average duration (time on task) across all attempts in seconds.
+    """
+    sql = """
+        SELECT AVG(duration_seconds)::numeric(10,2) AS avg_time
+        FROM attempts
+        WHERE timestamp >= :start AND timestamp <= :end AND duration_seconds IS NOT NULL;
+    """
+    params = {
+        "start": f"{start_date} 00:00:00" if start_date else "1900-01-01 00:00:00",
+        "end": f"{end_date} 23:59:59" if end_date else "2999-12-31 23:59:59"
+    }
+    return run_query(sql, params)
+
+# **--- 📚 Summary Queries from Faculty Dashboard ---**
 
 def case_study_summary(start_date: Optional[str] = None, end_date: Optional[str] = None) -> pd.DataFrame:
     """
@@ -129,7 +162,6 @@ def case_study_summary(start_date: Optional[str] = None, end_date: Optional[str]
 def campus_summary() -> pd.DataFrame:
     """
     Loads global aggregate campus performance metrics (assumed pre-computed or joined).
-    Since no date filter is passed in the dashboard, this loads the current global state.
     Assumes a pre-computed table named 'campus_metrics' or similar.
     """
     sql = """
@@ -141,7 +173,6 @@ def campus_summary() -> pd.DataFrame:
         FROM campus_metrics
         ORDER BY active_students DESC;
     """
-    # NOTE: This query does not use date filters as the Faculty Dashboard called it without them.
     return run_query(sql)
 
 
@@ -159,5 +190,4 @@ def department_summary() -> pd.DataFrame:
         FROM department_metrics
         ORDER BY avg_mastery DESC;
     """
-    # NOTE: This query does not use date filters as the Faculty Dashboard called it without them.
     return run_query(sql)
