@@ -51,7 +51,8 @@ def authenticate(username: str, password: str):
         st.session_state["role"] = roles.get(username, "Student")
 
         st.success("Login successful ✔")
-        st.experimental_rerun()
+        st.rerun()
+
     else:
         st.error("Invalid username or password")
 
