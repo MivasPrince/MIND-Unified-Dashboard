@@ -1,115 +1,113 @@
 import streamlit as st
 import re
-from typing import Tuple, Optional, Dict
+from typing import Tuple, Optional, Dict, List
+import bcrypt # 1. Import bcrypt
+import json
 
-# --- Configuration Constants (Aligning with Architecture Overview) ---
-# NOTE: For real-world use, replace this simple list check with JWT and bcrypt hashing.
-ROLE_CONFIG_KEYS = {
-    "Admin": "ADMIN_USERS",
-    "Faculty": "FACULTY_USERS",
-    "Developer": "DEVELOPER_USERS",
-    # Student is default if not found in any other list
-}
-# Define a placeholder secret for the simple login mechanism
-LOGIN_SECRET_KEY = "LOGIN_SECRET"
+# --- Configuration Constants ---
+# Define keys expected within each user's secret section
+USER_KEYS = ["username", "password_hash", "role"]
 
+# --- Utility Functions for Secret Loading ---
 
-def get_stored_config() -> Optional[Dict[str, str]]:
-    """Reads role configuration from Streamlit Secrets."""
+def _load_user_data() -> List[Dict[str, str]]:
+    """
+    Reads all user sections from st.secrets that contain the required keys.
     
-    # Check if any role list or the login secret is missing
-    missing_secrets = [key for key in ROLE_CONFIG_KEYS.values() if key not in st.secrets]
-    if LOGIN_SECRET_KEY not in st.secrets:
-        missing_secrets.append(LOGIN_SECRET_KEY)
-
-    if missing_secrets:
-        # Using markdown formatting to show the missing keys clearly
-        st.error(f"❌ Missing required keys in Streamlit Secrets: {', '.join(missing_secrets)}")
+    Returns:
+        A list of dictionaries, where each dict is a user object (username, hash, role).
+    """
+    user_list = []
+    # st.secrets is a Dict-like object. We iterate over its top-level keys.
+    for key, config in st.secrets.items():
+        # Identify user sections by checking for the 'username' key (or any other required key)
+        if isinstance(config, dict) and "username" in config:
+            is_valid_user = True
+            user_data = {}
+            for k in USER_KEYS:
+                if k not in config:
+                    is_valid_user = False
+                    break
+                user_data[k] = config[k]
+            
+            if is_valid_user:
+                # Add the user data only if all required keys are present
+                user_list.append(user_data)
+                
+    if not user_list:
+        st.error("❌ Authentication Error: No valid user configuration sections found in `secrets.toml`. Check structure (e.g., [admin_user], [faculty_user]).")
         st.stop()
-    
-    return st.secrets
+        
+    return user_list
 
 
 @st.cache_data(show_spinner=False)
-def get_user_role(username: str) -> str:
-    """
-    Determines the user's role by checking against the comma-separated lists 
-    stored in Streamlit secrets.
-    """
-    secrets = get_stored_config()
-    if not secrets:
-        return "Unauthorized"
+def get_user_data_map() -> Dict[str, Dict[str, str]]:
+    """Caches and returns a map of username -> user_data for quick lookup."""
+    user_list = _load_user_data()
+    return {user['username'].lower(): user for user in user_list}
 
-    # Normalize username (emails are case-insensitive)
+
+# ----------------------------------------------------------------
+# --- AUTHENTICATION FUNCTIONS (UPDATED FOR HASHES) ---
+# ----------------------------------------------------------------
+
+def get_user_role(username: str) -> Optional[Dict[str, str]]:
+    """
+    Finds the user's data (including hash and role) by username.
+    """
+    user_map = get_user_data_map()
     norm_username = username.lower()
-
-    # Check against roles in a defined hierarchy (Admin first)
-    for role, key in ROLE_CONFIG_KEYS.items():
-        # Get the comma-separated string, default to empty
-        user_list_str = secrets.get(key, "")
-        
-        # Split the string, strip whitespace, and normalize case
-        user_list = [u.strip().lower() for u in user_list_str.split(',') if u.strip()]
-        
-        if norm_username in user_list:
-            return role
-            
-    # If the user is not explicitly listed, they are considered a Student
-    return "Student"
+    
+    # If the user is found, return the full user dictionary
+    return user_map.get(norm_username)
 
 
 def login_widget():
-    """Shows the login UI."""
+    """Shows the login UI and validates credentials using bcrypt."""
     st.title("🔐 Login to MIND Unified Dashboard")
 
     username = st.text_input("Username (e.g., admin@example.com)")
-    # NOTE: The password here is purely for local testing and MUST be replaced 
-    # with a secure JWT flow in a real application.
-    password = st.text_input("Password (anything for local role testing)", type="password")
-
-    # Use a specific Streamlit secret as the "dummy" password for all logins.
-    # This prevents the app from being accessed without knowing this one secret.
-    DUMMY_PASSWORD = st.secrets.get(LOGIN_SECRET_KEY, "your_local_jwt_secret")
-
+    password = st.text_input("Password", type="password")
 
     if st.button("Login"):
-        # Basic validation: ensure username and a password (even the dummy one) is provided
         if username and password:
-            if password == DUMMY_PASSWORD:
-                authenticate(username)
+            user_data = get_user_role(username)
+
+            if user_data:
+                stored_hash = user_data["password_hash"].encode('utf-8')
+                input_password = password.encode('utf-8')
+
+                try:
+                    # 2. Use bcrypt.checkpw to securely verify the password
+                    if bcrypt.checkpw(input_password, stored_hash):
+                        authenticate(user_data["username"], user_data["role"])
+                    else:
+                        st.error("Invalid username or password.")
+                except ValueError:
+                    # Catch error if the stored hash is malformed
+                    st.error("Authentication system error. Contact support.")
             else:
-                 st.error("Invalid password")
+                st.error("Invalid username or password.")
         else:
-             st.error("Please enter both username and password.")
+            st.error("Please enter both username and password.")
 
 
-def authenticate(username: str):
+def authenticate(username: str, user_role: str):
     """
-    Sets session state if the username is recognized (i.e., has a role).
+    Sets session state after successful login.
     """
+    st.session_state["authenticated"] = True
+    st.session_state["username"] = username
+    st.session_state["role"] = user_role
 
-    user_role = get_user_role(username)
-
-    if user_role != "Unauthorized":
-        st.session_state["authenticated"] = True
-        st.session_state["username"] = username
-        st.session_state["role"] = user_role
-
-        st.success(f"Login successful ✔ Role: **{user_role}**")
-        st.rerun()
-    else:
-        # This branch should only be hit if get_user_role returns "Unauthorized"
-        st.error("Invalid username or password")
+    st.success(f"Login successful ✔ Role: **{user_role}**")
+    st.rerun()
 
 
 def check_authentication() -> Tuple[bool, Optional[str], Optional[str]]:
     """
     Returns the current authentication state and user details.
-
-    Returns:
-        - is_authenticated (bool)
-        - role (str)
-        - username (str)
     """
 
     # Initialize session state keys if they don't exist
@@ -130,7 +128,6 @@ def logout_button():
     """Adds a logout button to the sidebar."""
     if st.sidebar.button("Logout"):
         st.session_state.clear()
-        # Use st.rerun() to immediately trigger the login page display
         st.rerun()
 
 
@@ -138,10 +135,6 @@ def role_guard(required_role: str) -> Tuple[str, str]:
     """
     Ensures the logged-in user has the correct role for this page.
     Admin has access to all pages.
-
-    Returns:
-        - user_role (str)
-        - username (str)
     """
 
     is_auth, user_role, username = check_authentication()
