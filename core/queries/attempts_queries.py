@@ -1,40 +1,57 @@
-from core.db import run_query
-
+import pandas as pd
+from typing import Optional, Dict
+# Assuming db.py is one level up in the project root
+from db import run_query 
 
 # ----------------- BASIC LOADERS -----------------
 
-def load_attempts(start_date=None, end_date=None):
+def load_attempts(start_date: Optional[str] = None, end_date: Optional[str] = None) -> pd.DataFrame:
     """Load attempts with optional date filtering."""
+    
+    # 1. Base SQL query structure
     sql = """
         SELECT *
         FROM attempts
-        WHERE timestamp BETWEEN :start AND :end
+        WHERE timestamp >= :start AND timestamp <= :end
         ORDER BY timestamp;
     """
-    return run_query(sql, {
-        "start": f"{start_date} 00:00:00",
-        "end": f"{end_date} 23:59:59"
-    })
+    
+    # 2. Prepare parameters for date filtering
+    # Default to a wide range if dates are not provided
+    params = {
+        # Assuming dates are passed as YYYY-MM-DD strings
+        "start": f"{start_date} 00:00:00" if start_date else "1900-01-01 00:00:00",
+        "end": f"{end_date} 23:59:59" if end_date else "2999-12-31 23:59:59"
+    }
+    
+    return run_query(sql, params)
 
 
-def load_attempts_for_student(student_id, start_date=None, end_date=None):
+def load_attempts_for_student(student_id: str, start_date: Optional[str] = None, end_date: Optional[str] = None) -> pd.DataFrame:
+    """Load attempts for a specific student with optional date filtering."""
+    
     sql = """
         SELECT *
         FROM attempts
         WHERE student_id = :sid
-        AND timestamp BETWEEN :start AND :end
+        AND timestamp >= :start AND timestamp <= :end
         ORDER BY timestamp;
     """
-    return run_query(sql, {
+    
+    params = {
         "sid": student_id,
-        "start": f"{start_date} 00:00:00",
-        "end": f"{end_date} 23:59:59"
-    })
+        "start": f"{start_date} 00:00:00" if start_date else "1900-01-01 00:00:00",
+        "end": f"{end_date} 23:59:59" if end_date else "2999-12-31 23:59:59"
+    }
+    
+    return run_query(sql, params)
 
 
-def load_latest_attempts_per_case(student_id):
+def load_latest_attempts_per_case(student_id: str) -> pd.DataFrame:
     """
     Latest attempt (highest attempt_number) per case for a given student.
+    
+    Uses standard DISTINCT ON (PostgreSQL feature) for efficiency.
     """
     sql = """
         SELECT DISTINCT ON (case_id)
@@ -42,23 +59,25 @@ def load_latest_attempts_per_case(student_id):
             ces_value, timestamp, state
         FROM attempts
         WHERE student_id = :sid
-        ORDER BY case_id, attempt_number DESC;
+        ORDER BY case_id, attempt_number DESC, timestamp DESC; 
+        -- Added timestamp DESC for tie-breaking safety
     """
     return run_query(sql, {"sid": student_id})
 
 
 # ----------------- AGGREGATIONS -----------------
 
-def load_case_averages():
+def load_case_averages() -> pd.DataFrame:
     """
-    Average score & time per case across all students.
+    Average score, time, and CES value per case across all attempts.
     """
     sql = """
         SELECT 
             case_id,
             AVG(score)::numeric(10,2) AS avg_score,
             AVG(duration_seconds)::numeric(10,2) AS avg_time,
-            AVG(ces_value)::numeric(10,2) AS avg_ces
+            AVG(ces_value)::numeric(10,2) AS avg_ces,
+            COUNT(id) AS total_attempts
         FROM attempts
         GROUP BY case_id
         ORDER BY case_id;
@@ -66,24 +85,42 @@ def load_case_averages():
     return run_query(sql)
 
 
-def load_first_vs_second_attempt_improvements():
+def load_first_vs_second_attempt_improvements() -> pd.DataFrame:
     """
-    Improvement from attempt 1 to attempt 2 across cases.
+    Calculates the average improvement in score from the first attempt 
+    to the second attempt for each case across all students.
+    
+    Uses a Common Table Expression (CTE) and Window Functions for efficiency.
     """
     sql = """
+        WITH StudentAttempts AS (
+            -- Calculate the score of the previous attempt for each student and case
+            SELECT
+                student_id,
+                case_id,
+                attempt_number,
+                score,
+                LAG(score, 1) 
+                    OVER (PARTITION BY student_id, case_id ORDER BY attempt_number ASC) AS previous_score
+            FROM 
+                attempts
+        ),
+        Improvements AS (
+            -- Filter to the second attempt and calculate the improvement
+            SELECT
+                case_id,
+                (score - previous_score) AS score_improvement
+            FROM
+                StudentAttempts
+            WHERE
+                attempt_number = 2 AND previous_score IS NOT NULL
+        )
+        -- Final aggregation
         SELECT 
             case_id,
-            AVG(CASE WHEN attempt_number = 1 THEN score END) AS avg_first,
-            AVG(CASE WHEN attempt_number = 2 THEN score END) AS avg_second,
-            AVG(
-                CASE WHEN attempt_number = 2 THEN score END -
-                (SELECT score FROM attempts a2 
-                 WHERE a2.case_id = attempts.case_id
-                 AND a2.attempt_number = 1
-                 LIMIT 1)
-            ) AS avg_improvement
-        FROM attempts
-        GROUP BY case_id;
+            AVG(score_improvement)::numeric(10,2) AS avg_improvement_score
+        FROM Improvements
+        GROUP BY case_id
+        ORDER BY case_id;
     """
     return run_query(sql)
-
