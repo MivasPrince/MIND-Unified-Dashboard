@@ -1,9 +1,8 @@
-streamlit==1.37.0
-pandas==2.2.1
-plotly==5.22.0
-SQLAlchemy==2.0.25
-psycopg2-binary==2.9.9
-python-dotenv==1.0.1
-numpy==1.26.4
-pyjwt==2.8.0
-
+streamlit
+pandas
+plotly
+sqlalchemy
+psycopg2-binary
+python-dotenv
+numpy
+pyjwt
