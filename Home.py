@@ -1,8 +1,8 @@
 import streamlit as st
 from pathlib import Path
 # Assuming auth.py, theme.py are in the project root
-from auth import check_authentication, login_widget, logout_button 
-from theme import apply_theme 
+from core.auth import check_authentication, login_widget, logout_button # CORRECTED
+from core.theme import apply_theme # CORRECTED
 
 # =================================================================
 # 1. INITIAL SETUP & THEME APPLICATION
@@ -36,7 +36,10 @@ if not auth_status:
     st.stop()
 else:
     # If logged in, display the logout button in the sidebar
-    logout_button() 
+    # Note: We move the logout button call here, inside the authenticated block, 
+    # to ensure it's rendered only after successful login.
+    with st.sidebar:
+        logout_button() 
 
 # =================================================================
 # 3. MAIN UI AFTER LOGIN
