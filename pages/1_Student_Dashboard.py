@@ -5,6 +5,7 @@ View scores, rubric feedback, engagement, and progress
 
 import streamlit as st
 import pandas as pd
+import numpy as np
 import plotly.express as px
 from datetime import datetime, timedelta
 
@@ -96,10 +97,18 @@ summary_df = db.execute_query_df(summary_query)
 if not summary_df.empty:
     summary = summary_df.iloc[0]
     
+    # Safely get values with defaults for None/NaN
+    total_cases = summary['total_cases_attempted'] if pd.notna(summary['total_cases_attempted']) else 0
+    avg_score = summary['avg_score'] if pd.notna(summary['avg_score']) else 0
+    avg_ces = summary['avg_ces'] if pd.notna(summary['avg_ces']) else 0
+    avg_duration = summary['avg_duration'] if pd.notna(summary['avg_duration']) else 0
+    max_score = summary['max_score'] if pd.notna(summary['max_score']) else 0
+    
     # Calculate additional metrics
     active_days_query = get_student_active_days(student_id)
     active_days_df = db.execute_query_df(active_days_query)
     active_days = active_days_df.iloc[0]['active_days'] if not active_days_df.empty else 0
+    active_days = active_days if pd.notna(active_days) else 0
     
     # Engagement summary
     engagement_query = get_engagement_summary_by_student(student_id)
@@ -108,32 +117,34 @@ if not summary_df.empty:
     total_duration = 0
     if not engagement_df.empty:
         total_duration = engagement_df.iloc[0]['total_duration_seconds']
+        total_duration = total_duration if pd.notna(total_duration) else 0
     
     # Rubric mastery
     rubric_query = get_rubric_mastery_by_dimension(student_id)
     rubric_df = db.execute_query_df(rubric_query)
     avg_rubric_mastery = rubric_df['avg_percentage'].mean() if not rubric_df.empty else 0
+    avg_rubric_mastery = avg_rubric_mastery if pd.notna(avg_rubric_mastery) else 0
     
     # Display KPI cards
     metrics = [
         {
             'title': 'Cases Attempted',
-            'value': int(summary['total_cases_attempted']),
+            'value': int(total_cases),
             'accent': False
         },
         {
             'title': 'Average Score',
-            'value': f"{summary['avg_score']:.1f}%",
+            'value': f"{avg_score:.1f}%" if avg_score > 0 else "N/A",
             'accent': True
         },
         {
             'title': 'Average CES',
-            'value': f"{summary['avg_ces']:.1f}",
+            'value': f"{avg_ces:.1f}" if avg_ces > 0 else "N/A",
             'accent': False
         },
         {
             'title': 'Avg Time on Task',
-            'value': format_duration(int(summary['avg_duration'])),
+            'value': format_duration(int(avg_duration)),
             'accent': False
         },
         {
@@ -148,12 +159,12 @@ if not summary_df.empty:
         },
         {
             'title': 'Rubric Mastery',
-            'value': f"{avg_rubric_mastery:.1f}%",
+            'value': f"{avg_rubric_mastery:.1f}%" if avg_rubric_mastery > 0 else "N/A",
             'accent': True
         },
         {
             'title': 'Best Score',
-            'value': f"{summary['max_score']:.0f}%",
+            'value': f"{max_score:.0f}%" if max_score > 0 else "N/A",
             'accent': False
         }
     ]
@@ -161,7 +172,42 @@ if not summary_df.empty:
     render_metric_grid(metrics, columns=4)
 
 else:
-    st.info("No performance data available yet. Complete some case studies to see your metrics!")
+    st.info("📊 **No performance data available yet**")
+    st.markdown("""
+    ### Getting Started
+    
+    To see your performance metrics:
+    1. Complete case studies in the MIND platform
+    2. Your attempts will be recorded in the database
+    3. Return to this dashboard to view your analytics
+    
+    ### What You'll See
+    Once you have data, this dashboard will show:
+    - 📈 Your scores and improvement trends
+    - 📊 Rubric feedback and mastery levels
+    - 🎯 Engagement activity and time on task
+    - 📋 Detailed history of all your attempts
+    
+    **Student ID**: `{student_id}`  
+    **Database**: Connected ✅
+    """)
+    
+    # Show sample KPI cards with zero values
+    st.markdown("---")
+    st.markdown("### Preview: What Your Dashboard Will Look Like")
+    
+    metrics = [
+        {'title': 'Cases Attempted', 'value': 0, 'accent': False},
+        {'title': 'Average Score', 'value': 'N/A', 'accent': True},
+        {'title': 'Average CES', 'value': 'N/A', 'accent': False},
+        {'title': 'Avg Time on Task', 'value': '0m 0s', 'accent': False},
+        {'title': 'Active Days', 'value': 0, 'accent': False},
+        {'title': 'Total Engagement Time', 'value': '0m 0s', 'accent': False},
+        {'title': 'Rubric Mastery', 'value': 'N/A', 'accent': True},
+        {'title': 'Best Score', 'value': 'N/A', 'accent': False}
+    ]
+    
+    render_metric_grid(metrics, columns=4)
 
 st.markdown("---")
 
