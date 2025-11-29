@@ -26,7 +26,7 @@ DEFAULT_USERS = {
         'password': 'student123',
         'role': 'Student',
         'name': 'Demo Student',
-        'student_id': 'STU001'
+        'student_id': 'S0001'  # ← Updated to match your database!
     },
     'faculty@example.com': {
         'password': 'faculty123',
