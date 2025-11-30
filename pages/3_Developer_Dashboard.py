@@ -442,10 +442,10 @@ with col1:
     WHERE noise_level IS NOT NULL
     GROUP BY noise_category
     ORDER BY 
-        CASE noise_category
-            WHEN 'Quiet (0-40 dB)' THEN 1
-            WHEN 'Moderate (40-60 dB)' THEN 2
-            WHEN 'Noisy (60-80 dB)' THEN 3
+        CASE 
+            WHEN noise_level < 40 THEN 1
+            WHEN noise_level < 60 THEN 2
+            WHEN noise_level < 80 THEN 3
             ELSE 4
         END
     """
@@ -517,12 +517,12 @@ with col5:
     WHERE connection_drops IS NOT NULL
     GROUP BY drop_category
     ORDER BY 
-        CASE drop_category
-            WHEN 'No Drops' THEN 1
-            WHEN '1-2 Drops' THEN 2
-            WHEN '3-5 Drops' THEN 3
+        MIN(CASE 
+            WHEN connection_drops = 0 THEN 1
+            WHEN connection_drops <= 2 THEN 2
+            WHEN connection_drops <= 5 THEN 3
             ELSE 4
-        END
+        END)
     """
     
     drops_df = db.execute_query_df(drops_query)
