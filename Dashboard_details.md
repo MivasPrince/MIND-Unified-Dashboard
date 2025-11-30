@@ -37,7 +37,7 @@ The MIND Unified Analytics Dashboard is a comprehensive data analytics platform 
 
 ---
 
-# 👨‍🎓**Student Dashboard**
+# **Student Dashboard**
 
 ## **Overview**
 
