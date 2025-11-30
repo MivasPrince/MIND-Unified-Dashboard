@@ -601,6 +601,13 @@ with col1:
     if not system_summary_df.empty:
         sys = system_summary_df.iloc[0]
         
+        # Safely get values with defaults
+        avg_latency = float(sys['avg_latency']) if pd.notna(sys['avg_latency']) else 0
+        max_latency = float(sys['max_latency']) if pd.notna(sys['max_latency']) else 0
+        avg_error_rate = float(sys['avg_error_rate']) if pd.notna(sys['avg_error_rate']) else 0
+        avg_reliability = float(sys['avg_reliability']) if pd.notna(sys['avg_reliability']) else 0
+        critical_incidents = int(sys['critical_incidents']) if pd.notna(sys['critical_incidents']) else 0
+        
         st.markdown(f"""
         <div style="
             background-color: {COLORS['white']};
@@ -609,11 +616,11 @@ with col1:
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         ">
             <h4 style="color: {COLORS['primary']}; margin-top: 0;">Last 30 Days</h4>
-            <p><strong>Avg Latency:</strong> {sys['avg_latency']:.0f} ms</p>
-            <p><strong>Max Latency:</strong> {sys['max_latency']:.0f} ms</p>
-            <p><strong>Avg Error Rate:</strong> {sys['avg_error_rate']:.2f}%</p>
-            <p><strong>Avg Reliability:</strong> {sys['avg_reliability']:.1f}%</p>
-            <p><strong>Critical Incidents:</strong> {int(sys['critical_incidents'])}</p>
+            <p><strong>Avg Latency:</strong> {avg_latency:.0f} ms</p>
+            <p><strong>Max Latency:</strong> {max_latency:.0f} ms</p>
+            <p><strong>Avg Error Rate:</strong> {avg_error_rate:.2f}%</p>
+            <p><strong>Avg Reliability:</strong> {avg_reliability:.1f}%</p>
+            <p><strong>Critical Incidents:</strong> {critical_incidents}</p>
         </div>
         """, unsafe_allow_html=True)
     else:
@@ -637,6 +644,13 @@ with col2:
     if not env_summary_df.empty:
         env = env_summary_df.iloc[0]
         
+        # Safely get values with defaults
+        avg_noise = float(env['avg_noise']) if pd.notna(env['avg_noise']) else 0
+        avg_stability = float(env['avg_stability']) if pd.notna(env['avg_stability']) else 0
+        avg_latency = float(env['avg_latency']) if pd.notna(env['avg_latency']) else 0
+        avg_drops = float(env['avg_drops']) if pd.notna(env['avg_drops']) else 0
+        total_attempts = int(env['total_attempts']) if pd.notna(env['total_attempts']) else 0
+        
         st.markdown(f"""
         <div style="
             background-color: {COLORS['white']};
@@ -645,11 +659,11 @@ with col2:
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         ">
             <h4 style="color: {COLORS['primary']}; margin-top: 0;">All Time</h4>
-            <p><strong>Avg Noise Level:</strong> {env['avg_noise']:.0f} dB</p>
-            <p><strong>Avg Internet Stability:</strong> {env['avg_stability']:.1f}%</p>
-            <p><strong>Avg Internet Latency:</strong> {env['avg_latency']:.0f} ms</p>
-            <p><strong>Avg Connection Drops:</strong> {env['avg_drops']:.1f}</p>
-            <p><strong>Total Attempts Monitored:</strong> {int(env['total_attempts']):,}</p>
+            <p><strong>Avg Noise Level:</strong> {avg_noise:.0f} dB</p>
+            <p><strong>Avg Internet Stability:</strong> {avg_stability:.1f}%</p>
+            <p><strong>Avg Internet Latency:</strong> {avg_latency:.0f} ms</p>
+            <p><strong>Avg Connection Drops:</strong> {avg_drops:.1f}</p>
+            <p><strong>Total Attempts Monitored:</strong> {total_attempts:,}</p>
         </div>
         """, unsafe_allow_html=True)
     else:
