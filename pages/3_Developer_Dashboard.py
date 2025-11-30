@@ -440,12 +440,18 @@ with col1:
         AVG(noise_quality_index) as avg_quality
     FROM environment_metrics
     WHERE noise_level IS NOT NULL
-    GROUP BY noise_category
+    GROUP BY 
+        CASE 
+            WHEN noise_level < 40 THEN 'Quiet (0-40 dB)'
+            WHEN noise_level < 60 THEN 'Moderate (40-60 dB)'
+            WHEN noise_level < 80 THEN 'Noisy (60-80 dB)'
+            ELSE 'Very Noisy (80+ dB)'
+        END
     ORDER BY 
         CASE 
-            WHEN noise_level < 40 THEN 1
-            WHEN noise_level < 60 THEN 2
-            WHEN noise_level < 80 THEN 3
+            WHEN MIN(noise_level) < 40 THEN 1
+            WHEN MIN(noise_level) < 60 THEN 2
+            WHEN MIN(noise_level) < 80 THEN 3
             ELSE 4
         END
     """
@@ -515,14 +521,20 @@ with col5:
         AVG(internet_stability_score) as avg_stability
     FROM environment_metrics
     WHERE connection_drops IS NOT NULL
-    GROUP BY drop_category
+    GROUP BY 
+        CASE 
+            WHEN connection_drops = 0 THEN 'No Drops'
+            WHEN connection_drops <= 2 THEN '1-2 Drops'
+            WHEN connection_drops <= 5 THEN '3-5 Drops'
+            ELSE '6+ Drops'
+        END
     ORDER BY 
-        MIN(CASE 
-            WHEN connection_drops = 0 THEN 1
-            WHEN connection_drops <= 2 THEN 2
-            WHEN connection_drops <= 5 THEN 3
+        CASE 
+            WHEN MIN(connection_drops) = 0 THEN 1
+            WHEN MIN(connection_drops) <= 2 THEN 2
+            WHEN MIN(connection_drops) <= 5 THEN 3
             ELSE 4
-        END)
+        END
     """
     
     drops_df = db.execute_query_df(drops_query)
