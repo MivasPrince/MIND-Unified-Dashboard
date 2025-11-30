@@ -272,8 +272,8 @@ with col3:
     if not rubric_df.empty:
         fig = create_bar_chart(
             rubric_df,
-            x='rubric_dimension',
-            y='avg_percentage',
+            x='avg_percentage',
+            y='rubric_dimension',
             title='',
             orientation='h',
             x_label='Mastery (%)',
