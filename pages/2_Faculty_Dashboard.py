@@ -302,8 +302,8 @@ with col1:
             x='case_title',
             y='avg_score',
             title="Average Score by Case Study",
-            xlabel="Case Study",
-            ylabel="Average Score (%)"
+            x_label="Case Study",
+            y_label="Average Score (%)"
         )
         st.plotly_chart(fig, use_container_width=True)
     else:
@@ -335,9 +335,9 @@ with col2:
             x='department',
             y='avg_score',
             title="Average Score by Department",
-            xlabel="Department",
-            ylabel="Average Score (%)",
-            color_column='avg_score'
+            x_label="Department",
+            y_label="Average Score (%)",
+            color='avg_score'
         )
         st.plotly_chart(fig, use_container_width=True)
     else:
@@ -387,9 +387,9 @@ with col3:
             x='case_title',
             y='improvement',
             title="Average Improvement (Attempt 1 → 2)",
-            xlabel="Case Study",
-            ylabel="Improvement (%)",
-            color_column='improvement'
+            x_label="Case Study",
+            y_label="Improvement (%)",
+            color='improvement'
         )
         st.plotly_chart(fig, use_container_width=True)
     else:
@@ -421,9 +421,9 @@ with col4:
             x='campus',
             y='avg_score',
             title="Average Score by Campus",
-            xlabel="Campus",
-            ylabel="Average Score (%)",
-            color_column='avg_score'
+            x_label="Campus",
+            y_label="Average Score (%)",
+            color='avg_score'
         )
         st.plotly_chart(fig, use_container_width=True)
     else:
@@ -465,8 +465,8 @@ if not rubric_heatmap_df.empty and len(rubric_heatmap_df) > 0:
     fig = create_heatmap(
         heatmap_pivot,
         title="Rubric Mastery by Case Study (%)",
-        xlabel="Case Study",
-        ylabel="Rubric Dimension"
+        x_label="Case Study",
+        y_label="Rubric Dimension"
     )
     st.plotly_chart(fig, use_container_width=True)
 else:
@@ -503,8 +503,8 @@ if not engagement_trend_df.empty and len(engagement_trend_df) > 0:
         x='date',
         y='active_students',
         title="Daily Active Students",
-        xlabel="Date",
-        ylabel="Active Students"
+        x_label="Date",
+        y_label="Active Students"
     )
     st.plotly_chart(fig, use_container_width=True)
 else:
