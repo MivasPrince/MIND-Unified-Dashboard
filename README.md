@@ -1326,9 +1326,9 @@ Ready to get started? Follow this checklist:
 
 <div align="center">
 
-**Built with ❤️ by the Miva Open University MIND Team**
+**Built by the Research and Development Department, Miva Open University**
 
-**Last Updated:** December 2025  
+**Last Updated:** December 1st, 2025  
 **Version:** 1.0.0  
 **Status:** Production Ready ✅
 
