@@ -1,4 +1,4 @@
-# 🚀 Quick Start Guide
+# Quick Start Guide
 
 Get your MIND Dashboard running in 5 minutes!
 
