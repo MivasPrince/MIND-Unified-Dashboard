@@ -1,4 +1,4 @@
-# 📊 MIND Unified Analytics Dashboard
+# MIND Unified Analytics Dashboard
 
 > **Comprehensive analytics platform for Miva Open University's MIND project**
 
