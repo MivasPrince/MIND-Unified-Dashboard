@@ -1,12 +1,12 @@
-# 🚀 YOUR MIND Dashboard Setup Guide
+# MIND Dashboard Setup Guide
 
-**Your database and authentication are already configured!** Follow these steps to get running.
+**Database and authentication are already configured!** Follow these steps to get running.
 
 ---
 
 ## ✅ What's Pre-Configured
 
-- ✅ **Database Connection**: Your Neon Postgres credentials are set
+- ✅ **Database Connection**: Neon Postgres credentials are set
 - ✅ **Authentication**: Bcrypt hashed passwords configured
 - ✅ **User Accounts**: Admin, Faculty, Developer, Student ready
 - ✅ **Theme**: Miva Open University brand colors
@@ -300,8 +300,8 @@ Your dashboard is **production-ready** for the Student Dashboard and has secure 
 
 ---
 
-**Your Neon Database**: `ep-weathered-cake-a4lk3gou-pooler.us-east-1.aws.neon.tech`  
+**Neon Database**: `ep-weathered-cake-a4lk3gou-pooler.us-east-1.aws.neon.tech`  
 **Database Name**: `neondb`  
 **Admin Login**: `admin@example.com` / `admin123`
 
-**Ready to start!** 🚀
+**Ready to start!** 
