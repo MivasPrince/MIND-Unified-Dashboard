@@ -57,9 +57,9 @@ The **MIND Unified Analytics Dashboard** is a production-ready, multi-role analy
 
 ---
 
-## ✨ Features
+## Features
 
-### **🎓 Student Dashboard**
+### ** Student Dashboard**
 
 **Empowers individual learners with personalized insights**
 
@@ -72,7 +72,7 @@ The **MIND Unified Analytics Dashboard** is a production-ready, multi-role analy
   - Daily Engagement Activity (line chart)
 - **Insights:** Personal performance tracking, strength/weakness identification, study habit optimization
 
-### **👩‍🏫 Faculty Dashboard**
+### ** Faculty Dashboard**
 
 **Enables instructors to monitor cohort performance and teaching effectiveness**
 
@@ -91,7 +91,7 @@ The **MIND Unified Analytics Dashboard** is a production-ready, multi-role analy
   - Detailed Rubric Performance
 - **Filters:** Cohort, Department, Campus, Time Period (Last 7/30/90 Days, This Year, All Time, Custom Range)
 
-### **👨‍💻 Developer Dashboard**
+### ** Developer Dashboard**
 
 **Provides IT teams with comprehensive system health monitoring**
 
@@ -140,7 +140,7 @@ The **MIND Unified Analytics Dashboard** is a production-ready, multi-role analy
 
 ---
 
-## 🏗️ Architecture
+##  Architecture
 
 ### **Technology Stack**
 
@@ -237,7 +237,7 @@ MIND_Dashboard_Files/
 
 ---
 
-## 📊 Dashboards
+##  Dashboards
 
 ### **Dashboard Access Matrix**
 
@@ -262,7 +262,7 @@ MIND_Dashboard_Files/
 
 ---
 
-## 🚀 Installation
+##  Installation
 
 ### **Prerequisites**
 
@@ -343,7 +343,7 @@ The repository includes synthetic data for testing:
 
 ---
 
-## ⚙️ Configuration
+##  Configuration
 
 ### **Environment Variables**
 
@@ -423,7 +423,7 @@ Replace `assets/miva_logo.png` with your institution's logo (recommended: 200x50
 
 ---
 
-## 📖 Usage
+##  Usage
 
 ### **For Students**
 
