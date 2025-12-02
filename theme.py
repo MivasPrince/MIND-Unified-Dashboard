@@ -5,7 +5,7 @@ Colors: Light ash background, deep blue primary, red accents
 
 # Color Palette
 COLORS = {
-    'background': '#F5F5F5',        # Light ash background
+    'background': '#000000',        # Light ash background
     'primary': '#1B3B6F',           # Deep blue
     'secondary': '#2E5C8A',         # Medium blue
     'accent': '#DC143C',            # Crimson red
