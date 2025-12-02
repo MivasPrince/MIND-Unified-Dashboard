@@ -10,6 +10,7 @@ import plotly.express as px
 from datetime import datetime, timedelta
 
 from auth import require_auth, get_student_id, get_current_user
+from theme_toggle import apply_theme, create_theme_toggle
 from theme import apply_streamlit_theme, COLORS
 from db import init_database
 from core.components import (
@@ -33,6 +34,9 @@ from core.queries.engagement_queries import (
     get_engagement_by_action_type
 )
 
+# Apply theme CSS (must be first)
+apply_theme()
+
 # Page config
 st.set_page_config(
     page_title="Student Dashboard - MIND",
@@ -40,7 +44,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# Apply theme
+# Apply custom theme
 st.markdown(apply_streamlit_theme(), unsafe_allow_html=True)
 
 # Require authentication
@@ -60,6 +64,10 @@ st.markdown("---")
 
 # Date filter in sidebar
 with st.sidebar:
+    # Theme toggle
+    create_theme_toggle()
+    
+    st.markdown("---")
     st.markdown("### 📅 Filters")
     
     date_range_option = st.selectbox(
