@@ -9,6 +9,7 @@ import numpy as np
 from datetime import datetime, timedelta
 
 from auth import require_auth, get_current_user
+from theme_toggle import apply_theme, create_theme_toggle
 from theme import apply_streamlit_theme, COLORS
 from db import get_db_manager
 from core.components import (
@@ -30,6 +31,9 @@ from core.queries.engagement_queries import (
     get_cohort_engagement_summary, get_daily_engagement_trend
 )
 
+# Apply theme CSS (must be first)
+apply_theme()
+
 # Page config
 st.set_page_config(
     page_title="Faculty Dashboard - MIND",
@@ -37,7 +41,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# Apply theme
+# Apply custom theme
 st.markdown(apply_streamlit_theme(), unsafe_allow_html=True)
 
 # Require authentication
@@ -59,6 +63,11 @@ st.markdown("---")
 # FILTERS SECTION
 # ============================================================================
 
+# Theme toggle in sidebar
+with st.sidebar:
+    create_theme_toggle()
+
+st.markdown("---")
 st.markdown("### 📊 Filters")
 
 col1, col2, col3, col4 = st.columns(4)
@@ -275,8 +284,6 @@ st.markdown("### 📊 Performance Analytics")
 col1, col2 = st.columns(2)
 
 with col1:
-    st.markdown("#### 📈 Score Distribution by Case Study")
-    
     # Query for score distribution
     score_dist_query = f"""
     SELECT 
@@ -301,7 +308,7 @@ with col1:
             score_dist_df,
             x='case_title',
             y='avg_score',
-            title="Average Score by Case Study",
+            title="📈 Score Distribution by Case Study",
             x_label="Case Study",
             y_label="Average Score (%)"
         )
@@ -310,8 +317,6 @@ with col1:
         st.info("No data available for score distribution")
 
 with col2:
-    st.markdown("#### 🎯 Performance by Department")
-    
     # Query for department performance
     dept_perf_query = f"""
     SELECT 
@@ -334,7 +339,7 @@ with col2:
             dept_perf_df,
             x='department',
             y='avg_score',
-            title="Average Score by Department",
+            title="🎯 Performance by Department",
             x_label="Department",
             y_label="Average Score (%)",
             color='avg_score'
@@ -347,8 +352,6 @@ with col2:
 col3, col4 = st.columns(2)
 
 with col3:
-    st.markdown("#### 📊 Attempt 1 vs Attempt 2 Improvement")
-    
     # Query for improvement
     improvement_query = f"""
     WITH attempt_scores AS (
@@ -386,7 +389,7 @@ with col3:
             improvement_df,
             x='case_title',
             y='improvement',
-            title="Average Improvement (Attempt 1 → 2)",
+            title="📊 Attempt 1 vs Attempt 2 Improvement",
             x_label="Case Study",
             y_label="Improvement (%)",
             color='improvement'
@@ -396,8 +399,6 @@ with col3:
         st.info("No data available for improvement tracking")
 
 with col4:
-    st.markdown("#### 🏆 Performance by Campus")
-    
     # Query for campus performance
     campus_perf_query = f"""
     SELECT 
@@ -420,7 +421,7 @@ with col4:
             campus_perf_df,
             x='campus',
             y='avg_score',
-            title="Average Score by Campus",
+            title="🏆 Performance by Campus",
             x_label="Campus",
             y_label="Average Score (%)",
             color='avg_score'
@@ -434,8 +435,6 @@ st.markdown("---")
 # ============================================================================
 # RUBRIC MASTERY HEATMAP
 # ============================================================================
-
-st.markdown("### 🎯 Rubric Mastery Heatmap")
 
 rubric_heatmap_query = f"""
 SELECT 
@@ -464,7 +463,7 @@ if not rubric_heatmap_df.empty and len(rubric_heatmap_df) > 0:
     
     fig = create_heatmap(
         heatmap_pivot,
-        title="Rubric Mastery by Case Study (%)",
+        title="🎯 Rubric Mastery Heatmap",
         x_label="Case Study",
         y_label="Rubric Dimension"
     )
@@ -477,8 +476,6 @@ st.markdown("---")
 # ============================================================================
 # ENGAGEMENT TRENDS
 # ============================================================================
-
-st.markdown("### 📅 Engagement Trends Over Time")
 
 # Build date filter for engagement_logs (using 'el' alias)
 engagement_date_filter = build_date_filter('el')
@@ -505,7 +502,7 @@ if not engagement_trend_df.empty and len(engagement_trend_df) > 0:
         engagement_trend_df,
         x='date',
         y='active_students',
-        title="Daily Active Students",
+        title="📅 Engagement Trends Over Time",
         x_label="Date",
         y_label="Active Students"
     )
