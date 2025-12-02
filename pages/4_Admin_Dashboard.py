@@ -9,6 +9,7 @@ import numpy as np
 from datetime import datetime, timedelta
 
 from auth import require_auth, get_current_user
+from theme_toggle import apply_theme, create_theme_toggle
 from theme import apply_streamlit_theme, COLORS
 from db import get_db_manager
 from core.components import (
@@ -20,6 +21,9 @@ from core.utils import (
     format_number, format_percentage, format_duration
 )
 
+# Apply theme CSS (must be first)
+apply_theme()
+
 # Page config
 st.set_page_config(
     page_title="Admin Dashboard - MIND",
@@ -27,7 +31,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# Apply theme
+# Apply custom theme
 st.markdown(apply_streamlit_theme(), unsafe_allow_html=True)
 
 # Require authentication
@@ -49,6 +53,11 @@ st.markdown("---")
 # FILTERS SECTION
 # ============================================================================
 
+# Theme toggle in sidebar
+with st.sidebar:
+    create_theme_toggle()
+
+st.markdown("---")
 st.markdown("### 📊 Filters")
 
 col1, col2, col3 = st.columns(3)
@@ -286,7 +295,6 @@ st.markdown("### 📊 Institutional Trends")
 col1, col2 = st.columns(2)
 
 with col1:
-    st.markdown("#### 📈 Performance Trends Over Time")
     
     el_date_filter = build_date_filter('a')
     
@@ -322,7 +330,6 @@ with col1:
         st.info("No performance trend data available")
 
 with col2:
-    st.markdown("#### 👥 Student Engagement Trends")
     
     engagement_trend_query = f"""
     SELECT 
@@ -358,7 +365,6 @@ with col2:
 col3, col4 = st.columns(2)
 
 with col3:
-    st.markdown("#### ⏱️ Learning Hours Trend")
     
     hours_trend_query = f"""
     SELECT 
@@ -391,7 +397,6 @@ with col3:
         st.info("No learning hours trend data available")
 
 with col4:
-    st.markdown("#### 📊 Completion Rate Trend")
     
     completion_trend_query = f"""
     SELECT 
@@ -434,7 +439,6 @@ st.markdown("### 🎯 Cross-Sectional Analysis")
 col1, col2 = st.columns(2)
 
 with col1:
-    st.markdown("#### 🏢 Performance by Department")
     
     dept_perf_query = f"""
     SELECT 
@@ -471,7 +475,6 @@ with col1:
         st.info("No department performance data available")
 
 with col2:
-    st.markdown("#### 🏫 Performance by Campus")
     
     campus_perf_query = f"""
     SELECT 
@@ -510,7 +513,6 @@ with col2:
 col5, col6 = st.columns(2)
 
 with col5:
-    st.markdown("#### 👥 Student Distribution by Cohort")
     
     cohort_dist_query = f"""
     SELECT 
@@ -538,7 +540,6 @@ with col5:
         st.info("No cohort distribution data available")
 
 with col6:
-    st.markdown("#### 📚 Case Study Usage")
     
     case_usage_query = f"""
     SELECT 
@@ -593,7 +594,6 @@ with col1:
         AVG(reliability_index) as avg_reliability,
         COUNT(CASE WHEN severity = 'Critical' THEN 1 END) as critical_incidents
     FROM system_reliability
-    WHERE timestamp >= NOW() - INTERVAL '30 days'
     """
     
     system_summary_df = db.execute_query_df(system_summary_query)
@@ -615,7 +615,7 @@ with col1:
             padding: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         ">
-            <h4 style="color: {COLORS['primary']}; margin-top: 0;">Last 30 Days</h4>
+            <h4 style="color: {COLORS['primary']}; margin-top: 0;">All Time</h4>
             <p><strong>Avg Latency:</strong> {avg_latency:.0f} ms</p>
             <p><strong>Max Latency:</strong> {max_latency:.0f} ms</p>
             <p><strong>Avg Error Rate:</strong> {avg_error_rate:.2f}%</p>
